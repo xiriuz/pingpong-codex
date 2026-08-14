@@ -23,7 +23,8 @@ function updatePlayer(state,p,input,dt,events){
   p.x=clamp(p.x+input.moveX*C.PLAYER_SPEED*dt,-1.3,1.3);
   const dz=input.moveZ*C.PLAYER_SPEED*dt*(-p.side);p.z=clamp(p.z+dz,p.side<0?-2.6:1.5,p.side<0?-1.5:2.6);
   p.cooldown=Math.max(0,p.cooldown-dt);p.swingTime=Math.max(0,p.swingTime-dt);p.pose=p.swingTime>0?'swing':'idle';
-  if(input.swing&&p.cooldown<=0){p.swingTime=C.SWING_TIME;p.cooldown=C.SWING_TIME+C.SWING_COOLDOWN;p.swingShot=input.swing;events.push({type:'swing',player:p.index});
+  const secondServeTap=!state.ball.active&&p.index===state.server&&state.serveStage===1;
+  if(input.swing&&(p.cooldown<=0||secondServeTap)){p.swingTime=C.SWING_TIME;p.cooldown=C.SWING_TIME+C.SWING_COOLDOWN;p.swingShot=input.swing;events.push({type:'swing',player:p.index});
     if(!state.ball.active&&p.index===state.server){if(state.serveStage===0){state.serveStage=1;state.serveTimer=0;}else launchServe(state,p,input.swing,events);}
   }
   if(state.ball.active&&p.swingTime>0&&state.ball.lastHit!==p.index){
@@ -43,7 +44,7 @@ function aimVelocity(b,p,shot,isServe){
 function awardPoint(state,index,events,message){
   if(state.status!=='playing')return;state.ball.active=false;state.score[index]++;state.totalPoints++;state.scoreFlash=.55;events.push({type:'score',player:index,message});
   if(isMatchWon(state.score,index)){state.status='ended';state.winner=index;events.push({type:'gameover',player:index});return;}
-  state.server=Math.floor(state.totalPoints/C.SERVE_SWITCH)%2;state.pointDelay=.65;
+  state.server=Math.floor(state.totalPoints/C.SERVE_SWITCH)%2;state.pointDelay=.65*C.GAME_SPEED;
 }
 function cross(a,b){return{x:a.y*b.z-a.z*b.y,y:a.z*b.x-a.x*b.z,z:a.x*b.y-a.y*b.x};}
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));const lerp=(a,b,t)=>a+(b-a)*t;

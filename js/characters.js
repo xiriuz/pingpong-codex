@@ -2,7 +2,7 @@ import {C} from './config.js';
 
 export const CHARACTERS={
   boy:{id:'boy',name:'뾰족머리',color:C.COLORS.boy},
-  girl:{id:'girl',name:'긴머리',color:C.COLORS.girl}
+  girl:{id:'girl',name:'포니테일',color:C.COLORS.girl}
 };
 
 export function drawCharacter(ctx,id,x,y,size,pose='idle',flip=false){

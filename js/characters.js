@@ -1,16 +1,44 @@
 import {C} from './config.js';
-export const CHARACTERS={boy:{id:'boy',name:'왕관이',color:C.COLORS.boy},girl:{id:'girl',name:'하트별이',color:C.COLORS.girl}};
+
+export const CHARACTERS={
+  boy:{id:'boy',name:'뾰족머리',color:C.COLORS.boy},
+  girl:{id:'girl',name:'긴머리',color:C.COLORS.girl}
+};
 
 export function drawCharacter(ctx,id,x,y,size,pose='idle',flip=false){
-  const c=CHARACTERS[id],s=size/200;
-  ctx.save();ctx.translate(x,y);if(flip)ctx.scale(-1,1);ctx.scale(s,s);ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=C.COLORS.ink;ctx.lineWidth=6;
-  const bounce=pose==='win'?-8:0,tilt=pose==='swing'?.16:0;ctx.translate(0,bounce);ctx.rotate(tilt);
-  if(id==='girl'){ctx.fillStyle='#6B4E72';ctx.beginPath();ctx.arc(0,-42,46,Math.PI,0);ctx.lineTo(48,22);ctx.quadraticCurveTo(25,5,23,-26);ctx.lineTo(-23,-26);ctx.quadraticCurveTo(-25,5,-48,22);ctx.closePath();ctx.fill();}
-  ctx.fillStyle='#FFD7BD';ctx.beginPath();ctx.arc(0,-40,36,0,Math.PI*2);ctx.fill();ctx.stroke();
-  if(id==='boy'){ctx.fillStyle=C.COLORS.accent;ctx.beginPath();ctx.moveTo(-30,-74);ctx.lineTo(-34,-105);ctx.lineTo(-12,-88);ctx.lineTo(0,-110);ctx.lineTo(14,-88);ctx.lineTo(34,-105);ctx.lineTo(29,-73);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#6B4E72';ctx.beginPath();ctx.arc(0,-48,37,Math.PI,0);ctx.fill();}
-  ctx.strokeStyle=C.COLORS.ink;ctx.lineWidth=5;ctx.beginPath();ctx.arc(-12,-42,3,0,Math.PI*2);ctx.arc(12,-42,3,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(0,-29,10,.1,Math.PI-.1);ctx.stroke();
-  ctx.fillStyle=c.color;ctx.strokeStyle=C.COLORS.ink;ctx.lineWidth=6;ctx.beginPath();if(id==='girl'){ctx.moveTo(-24,-4);ctx.lineTo(-45,65);ctx.lineTo(45,65);ctx.lineTo(24,-4);}else{ctx.roundRect(-30,-7,60,75,15)}ctx.closePath();ctx.fill();ctx.stroke();
-  const arm=pose==='swing'?-42:-12;ctx.beginPath();ctx.moveTo(-25,8);ctx.lineTo(-55,35);ctx.moveTo(25,8);ctx.lineTo(58,arm);ctx.stroke();ctx.fillStyle='#FFD7BD';ctx.beginPath();ctx.arc(-58,38,7,0,7);ctx.arc(60,arm-2,7,0,7);ctx.fill();
-  ctx.strokeStyle=C.COLORS.ink;ctx.beginPath();ctx.moveTo(-18,65);ctx.lineTo(-18,100);ctx.moveTo(18,65);ctx.lineTo(18,100);ctx.stroke();
-  ctx.fillStyle=c.color;ctx.beginPath();ctx.ellipse(65,arm-18,18,25,pose==='swing'?.8:-.5,0,7);ctx.fill();ctx.stroke();ctx.restore();
+  const c=CHARACTERS[id],s=size/200,bounce=pose==='win'?-9:0,armY=pose==='swing'?-42:-12;
+  ctx.save();ctx.translate(x,y+bounce);if(flip)ctx.scale(-1,1);ctx.scale(s,s);
+  ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=C.COLORS.ink;ctx.lineWidth=5;
+
+  // 원본의 긴 머리 실루엣: 얼굴 양옆에서 아래로 내려오는 한 덩어리.
+  if(id==='girl'){
+    ctx.fillStyle='#8C6280';ctx.beginPath();ctx.moveTo(-34,-78);ctx.quadraticCurveTo(-58,-51,-45,25);
+    ctx.lineTo(-20,10);ctx.lineTo(20,10);ctx.lineTo(47,25);ctx.quadraticCurveTo(57,-54,31,-78);ctx.closePath();ctx.fill();ctx.stroke();
+  }
+
+  ctx.fillStyle='#FFE0C8';ctx.beginPath();ctx.roundRect(-31,-76,62,70,26);ctx.fill();ctx.stroke();
+
+  // 원본처럼 짧고 뾰족한 머리카락입니다.
+  if(id==='boy'){
+    ctx.fillStyle='#62536F';ctx.beginPath();ctx.moveTo(-31,-60);ctx.lineTo(-30,-82);ctx.lineTo(-19,-74);
+    ctx.lineTo(-9,-89);ctx.lineTo(2,-75);ctx.lineTo(14,-89);ctx.lineTo(21,-73);ctx.lineTo(31,-81);
+    ctx.lineTo(30,-58);ctx.quadraticCurveTo(0,-70,-31,-60);ctx.closePath();ctx.fill();ctx.stroke();
+  }
+
+  ctx.fillStyle=C.COLORS.ink;ctx.beginPath();ctx.arc(-10,-44,2.8,0,Math.PI*2);ctx.arc(10,-44,2.8,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(0,-31,10,.15,Math.PI-.15);ctx.stroke();
+  ctx.fillStyle='#FFE0C8';ctx.beginPath();ctx.arc(0,0,7,0,Math.PI*2);ctx.fill();ctx.stroke();
+
+  ctx.fillStyle=c.color;ctx.beginPath();
+  if(id==='girl'){ctx.moveTo(-22,8);ctx.lineTo(-42,66);ctx.lineTo(42,66);ctx.lineTo(22,8);}
+  else ctx.rect(-29,7,58,59);
+  ctx.closePath();ctx.fill();ctx.stroke();
+
+  ctx.beginPath();ctx.moveTo(-25,15);ctx.lineTo(-57,42);ctx.moveTo(25,15);ctx.lineTo(57,armY);ctx.stroke();
+  ctx.fillStyle='#FFE0C8';for(const [hx,hy] of [[-59,44],[59,armY-2]]){ctx.beginPath();ctx.arc(hx,hy,6,0,Math.PI*2);ctx.fill();ctx.stroke();}
+  ctx.beginPath();ctx.moveTo(-16,66);ctx.lineTo(-16,101);ctx.moveTo(16,66);ctx.lineTo(16,101);ctx.stroke();
+  ctx.beginPath();ctx.arc(-16,104,5,0,Math.PI*2);ctx.arc(16,104,5,0,Math.PI*2);ctx.fill();ctx.stroke();
+
+  ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(58,armY-7);ctx.lineTo(67,armY-28);ctx.stroke();
+  ctx.fillStyle=c.color;ctx.lineWidth=5;ctx.beginPath();ctx.ellipse(72,armY-42,16,22,-.38,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
 }

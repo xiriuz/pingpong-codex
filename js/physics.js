@@ -23,9 +23,10 @@ function updatePlayer(state,p,input,dt,events){
   p.x=clamp(p.x+input.moveX*C.PLAYER_SPEED*dt,-1.3,1.3);
   const dz=input.moveZ*C.PLAYER_SPEED*dt*(-p.side);p.z=clamp(p.z+dz,p.side<0?-2.6:1.5,p.side<0?-1.5:2.6);
   p.cooldown=Math.max(0,p.cooldown-dt);p.swingTime=Math.max(0,p.swingTime-dt);p.pose=p.swingTime>0?'swing':'idle';
+  if(input.toss&&!state.ball.active&&p.index===state.server&&state.serveStage===0){state.serveStage=1;state.serveTimer=0;events.push({type:'toss',player:p.index});}
   const secondServeTap=!state.ball.active&&p.index===state.server&&state.serveStage===1;
   if(input.swing&&(p.cooldown<=0||secondServeTap)){p.swingTime=C.SWING_TIME;p.cooldown=C.SWING_TIME+C.SWING_COOLDOWN;p.swingShot=input.swing;events.push({type:'swing',player:p.index});
-    if(!state.ball.active&&p.index===state.server){if(state.serveStage===0){state.serveStage=1;state.serveTimer=0;}else launchServe(state,p,input.swing,events);}
+    if(!state.ball.active&&p.index===state.server&&state.serveStage===1)launchServe(state,p,input.swing,events);
   }
   if(state.ball.active&&p.swingTime>0&&state.ball.lastHit!==p.index){
     const h={x:p.x,y:.10,z:p.z+.40*(-p.side)},b=state.ball;const d=Math.hypot(b.x-h.x,b.y-h.y,b.z-h.z);
@@ -36,17 +37,16 @@ function updateServe(state,dt){if(state.ball.active)return;const p=state.players
 function launchServe(state,p,shot,events){const b=state.ball;state.serveStage=2;b.active=true;b.lastHit=p.index;b.bounces=[0,0];b.netChecked=false;aimVelocity(b,p,shot,true);events.push({type:'hit',player:p.index,x:b.x,y:b.y,z:b.z});}
 function hitBall(state,p,shot,events){const b=state.ball;b.lastHit=p.index;b.bounces=[0,0];b.netChecked=false;aimVelocity(b,p,shot,false);state.rally++;state.bestRally=Math.max(state.bestRally,state.rally);events.push({type:'hit',player:p.index,x:b.x,y:b.y,z:b.z,rally:state.rally});}
 function aimVelocity(b,p,shot,isServe){
-  const strength=clamp(shot.power||0,0,1),dirX=clamp(shot.dirX||0,-1,1),vertical=clamp(shot.dirY||0,-1,1);
-  const automaticX=dirX*.58,manualX=clamp(b.x+dirX*.82,-.68,.68),targetX=lerp(manualX,automaticX,C.AIM_ASSIST);
+  const strength=clamp(shot.power||0,0,1),vertical=clamp(shot.dirY||0,-1,1),targetX=clamp(-p.x*.12,-.3,.3);
   const targetZ=isServe?p.side*.62:-p.side*.74;
   const speed=5.80+strength*1.00;
-  const travel=isServe?.34:Math.max(.16,Math.abs(targetZ-b.z)/speed);
+  const travel=isServe?.38:Math.max(.16,Math.abs(targetZ-b.z)/speed);
   b.vz=(targetZ-b.z)/travel;
   // 서브는 첫 목표가 반드시 자기 코트입니다. 바운드 반발로 네트를 넘어 상대 코트에 두 번째로 떨어집니다.
   const xTravel=isServe?travel+.34:travel;b.vx=clamp((targetX-b.x)/xTravel,-2.1,2.1);
   // 목표 지점에서 공의 아랫면이 상판에 닿도록 역산해 낮은 탁구 탄도를 만듭니다.
-  b.vy=(C.BALL_R-b.y+.5*C.GRAVITY*travel*travel)/travel-vertical*(isServe?.08:.18);
-  b.spin.x=clamp(vertical*C.MAX_SPIN,-C.MAX_SPIN,C.MAX_SPIN);b.spin.y=clamp(dirX*C.MAX_SPIN,-C.MAX_SPIN,C.MAX_SPIN);b.spin.z=0;
+  b.vy=(C.BALL_R-b.y+.5*C.GRAVITY*travel*travel)/travel-vertical*(isServe?.015:.08);
+  b.spin.x=clamp(vertical*C.MAX_SPIN*(isServe?.20:.65),-C.MAX_SPIN,C.MAX_SPIN);b.spin.y=0;b.spin.z=0;
 }
 function awardPoint(state,index,events,message){
   if(state.status!=='playing')return;state.ball.active=false;state.score[index]++;state.totalPoints++;state.scoreFlash=.55;events.push({type:'score',player:index,message});
@@ -54,4 +54,4 @@ function awardPoint(state,index,events,message){
   state.server=Math.floor(state.totalPoints/C.SERVE_SWITCH)%2;state.pointDelay=.65*C.GAME_SPEED;
 }
 function cross(a,b){return{x:a.y*b.z-a.z*b.y,y:a.z*b.x-a.x*b.z,z:a.x*b.y-a.y*b.x};}
-const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));const lerp=(a,b,t)=>a+(b-a)*t;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
